@@ -1,7 +1,7 @@
 # Docs for the Azure Web Apps Deploy action: https://github.com/azure/functions-action
 # More GitHub Actions for Azure: https://github.com/Azure/actions
 
-name: Build and deploy dotnet core project to Azure Function App - zackdemoapp2022
+name: Build and deploy Node.js project to Azure Function App - zackdemoapp2022
 
 on:
   push:
@@ -11,25 +11,27 @@ on:
 
 env:
   AZURE_FUNCTIONAPP_PACKAGE_PATH: '.' # set this to the path to your web app project, defaults to the repository root
-  DOTNET_VERSION: '6.0.x' # set this to the dotnet version to use
+  NODE_VERSION: '14.x' # set this to the node version to use (supports 8.x, 10.x, 12.x)
 
 jobs:
   build-and-deploy:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     steps:
       - name: 'Checkout GitHub Action'
         uses: actions/checkout@v2
 
-      - name: Setup DotNet ${{ env.DOTNET_VERSION }} Environment
-        uses: actions/setup-dotnet@v1
+      - name: Setup Node ${{ env.NODE_VERSION }} Environment
+        uses: actions/setup-node@v1
         with:
-          dotnet-version: ${{ env.DOTNET_VERSION }}
+          node-version: ${{ env.NODE_VERSION }}
 
-      - name: 'Resolve Project Dependencies Using Dotnet'
-        shell: bash
+      - name: 'Resolve Project Dependencies Using Npm'
+        shell: pwsh
         run: |
           pushd './${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}'
-          dotnet build --configuration Release --output ./output
+          npm install
+          npm run build --if-present
+          npm run test --if-present
           popd
 
       - name: 'Run Azure Functions Action'
@@ -38,5 +40,5 @@ jobs:
         with:
           app-name: 'zackdemoapp2022'
           slot-name: 'Production'
-          package: '${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}/output'
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_356F24C8DFF54AA88241C5FA48B40311 }}
+          package: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_DE3B974CC9174F9998543F2D5E2B1846 }}
